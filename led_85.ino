@@ -3,19 +3,19 @@
 #define LED_PIN     3
 #define NUM_LEDS    1
 
-int btn = A2;
-int val = 0;
+const int button = 1;
+int button_state = LOW;
 CRGB leds[NUM_LEDS];
 
 void setup() {
-  pinMode(btn, INPUT);
+  pinMode(button, INPUT_PULLUP);
   FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(70);
 }
 
-void loop() {  
-  val = analogRead(btn);
-  if (val < 998){ //5V: 455
+void loop() {
+  button_state = digitalRead(button);
+  if (!button_state){
     leds[0] = CRGB(0, 0, 255);
     FastLED.show();
     delay(100);
