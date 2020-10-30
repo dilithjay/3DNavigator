@@ -13,20 +13,7 @@ void setup() {
   FastLED.setBrightness(70);
 }
 
-void loop() {
-  /*val = analogRead(btn);
-  if (val < 1000){
-  leds[0] = CRGB(255, 0, 0);
-  FastLED.show();
-  delay(500);
-  leds[0] = CRGB(0, 255, 0);
-  FastLED.show();
-  delay(500);  
-  leds[0] = CRGB(0, 0, 255);
-  FastLED.show();
-  delay(500);
-  }*/
-  
+void loop() {  
   val = analogRead(btn);
   if (val < 998){ //5V: 455
     leds[0] = CRGB(0, 0, 255);
@@ -36,6 +23,5 @@ void loop() {
   else{    
     leds[0] = CRGB(255, 0, 0);
     FastLED.show();
-    // delay(100);
   }
 }
