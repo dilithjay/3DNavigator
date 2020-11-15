@@ -6,4 +6,4 @@ This is the code for a small device that can be used to navigate in a 3D modelli
 The code containing the inference and the logic for the controls
 
 ### led_85.ino
-The code that run on the ATtiny85
+The code that runs on the ATtiny85
