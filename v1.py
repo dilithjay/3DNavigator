@@ -6,9 +6,12 @@ from object_detection.utils import ops as utils_ops
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
+import cv2
+import time
+import pyautogui
+
 
 labelmap_path = "labelmap.txt"
-
 category_index = label_map_util.create_category_index_from_labelmap(labelmap_path, use_display_name=True)
 
 tf.keras.backend.clear_session()
@@ -48,21 +51,19 @@ def run_inference_for_single_image(model, image):
     
   return output_dict
 
-import cv2
-import time
 
 vc = cv2.VideoCapture(0)
+
+# Set video capture resolution
 vc.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 vc.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-# ser = Serial('COM5', 9600)
 
-import pyautogui
 size = pyautogui.size()
-counts = [0, 0, 0, 0]
-#cols = "rrrrrrr"
-num = 0
-prev_col = 2
-prev_loc = (960, 540)
+
+counts = (0, 0, 0, 0)       # the number of fingers detected in the last 4 frames. Used for checking consistency
+num = 0                     # most common count out of counts (mode of the list)
+prev_col = 2                # index of color out of 1 or 2. blue: 1, read: 2
+prev_loc = (960, 540)       # used to keep track of previous location of head. Starting at the center of the screen
 
 def run_inference(model, cap):
     global num
@@ -72,8 +73,7 @@ def run_inference(model, cap):
     t = time.time()
     ret, image_np = cap.read()
     img = image_np
-    #img = image_np[240:, :, :]
-    #img = cv2.resize(image_np, (640, 360))
+    
     # Actual detection.
     output_dict = run_inference_for_single_image(model, img)
     # Visualization of the results of a detection.
@@ -88,21 +88,24 @@ def run_inference(model, cap):
         min_score_thresh=.2,
         line_thickness=5)
     
-    # print('inference took:', time.time() - t, "seconds")
-    lst = output_dict['detection_scores'][:]
+    print('inference time:', time.time() - t, "seconds")
+    
+    detection_scores = output_dict['detection_scores'][:]
     maxes = []
     max_boxes = []
-    col = output_dict['detection_classes'][np.argmax(lst)]
+    col = output_dict['detection_classes'][np.argmax(detection_scores)]
     
     # Get list of valid detections
     while len(maxes) < 3:
-        index = np.argmax(lst)
-        if lst[index] > 0.2:
+        index = np.argmax(detection_scores)
+        # check if accuracy is acceptable
+        if detection_scores[index] > 0.2:
             # box format: ymin, xmin, ymax, xmax
             box = output_dict['detection_boxes'][index]
             y_avg = (box[0] + box[2])/2
             x_avg = (box[1] + box[3])/2
-            lst[index] = -1
+            detection_scores[index] = -1
+            # check if distance to previously detected boxes is not too small (to avoid multiple detections)
             if all((i[0] - y_avg)**2 + (i[1] - x_avg)**2 > 0.006 for i in maxes):
                 maxes.append([y_avg, x_avg])
             else:
